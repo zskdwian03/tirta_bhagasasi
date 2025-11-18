@@ -1,0 +1,247 @@
+<?php
+session_start();
+
+// Cek apakah user sudah login
+if (!isset($_SESSION['role'])) {
+    header("Location: ../login.php?msg=Silakan login terlebih dahulu");
+    exit();
+}
+
+// Tentukan tujuan tombol back berdasarkan role
+$role = strtolower($_SESSION['role']);
+
+if ($role === 'admin') {
+    $backUrl = '../admin/daftar.php';
+} else {
+    $backUrl = '../user/index.php';
+}
+
+// Ambil file dari URL
+$file = isset($_GET['file']) ? "../" . ltrim($_GET['file'], "/") : null;
+if ($file && !file_exists($file)) {
+    $file = null;
+}
+?>
+
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Flipbook</title>
+
+    <link rel="stylesheet" href="style.css" />
+    <style>
+        .back-btn {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: #04376B;
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 14px;
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #065298;
+        }
+
+        .book-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .buttons {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        input[type="text"] {
+            padding: 8px 12px;
+            font-size: 14px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            width: 200px;
+            transition: 0.3s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #04376B;
+            outline: none;
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.4);
+        }
+
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #04376B;
+            color: white;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: #04376B;
+        }
+
+        .content {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .content>canvas,
+        .textLayer {
+            position: absolute;
+        }
+
+        .textLayer {
+            opacity: 1;
+            line-height: 1.0;
+            overflow: hidden;
+        }
+
+        .textLayer>span {
+            position: absolute;
+            color: transparent;
+            white-space: pre;
+            cursor: text;
+            transform-origin: 0% 0%;
+        }
+
+        .textLayer>span mark.highlight-match {
+            background-color: rgba(255, 200, 0, 0.45);
+        }
+
+        #search-results-panel {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            width: 300px;
+            max-height: calc(100vh - 180px);
+            background: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+        }
+
+        #search-results-header {
+            padding: 10px 15px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #search-results-header h4 {
+            margin: 0;
+            font-size: 16px;
+        }
+
+        #search-results-count {
+            font-size: 14px;
+            color: #555;
+        }
+
+        #search-results-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        #search-results-list li {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #search-results-list li:hover {
+            background-color: #f0f0f0;
+        }
+
+        #search-results-list li strong {
+            display: block;
+            font-size: 14px;
+            color: #04376B;
+            margin-bottom: 5px;
+        }
+
+        #search-results-list li p {
+            font-size: 12px;
+            color: #333;
+            margin: 0;
+            line-height: 1.4;
+            max-height: 4.2em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #search-results-list li mark {
+            background-color: #ffc800;
+            color: #333;
+            font-weight: bold;
+            padding: 0 1px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Tombol Back -->
+    <a href="<?= $backUrl ?>" class="back-btn">←</a>
+
+    <div class="book-container">
+        <div id="search-results-panel">
+            <div id="search-results-header">
+                <h4>Hasil Pencarian</h4>
+                <span id="search-results-count"></span>
+            </div>
+            <ul id="search-results-list"></ul>
+        </div>
+
+        <div class="book" id="book"></div>
+        <div class="buttons">
+            <button id="prev-btn">← Sebelumnya</button>
+            <button id="next-btn">Berikutnya →</button>
+            <input type="text" id="search-input" placeholder="Cari kata...">
+            <button id="search-btn">Cari</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+
+    <!-- Variabel global dari PHP ke JS -->
+    <script>
+        const filePath = <?= $file ? json_encode($file) : 'null' ?>;
+    </script>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
