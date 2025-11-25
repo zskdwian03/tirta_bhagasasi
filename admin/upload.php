@@ -4,6 +4,7 @@ if (!isset($_SESSION['user']) || $_SESSION['role'] != 'admin') {
   header("Location: ../login.php?msg=Silakan login terlebih dahulu");
   exit();
 }
+$page = basename($_SERVER['PHP_SELF']);
 require_once "../db.php";
 $db = new Database();
 $conn = $db->connect();
@@ -13,27 +14,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['pdf'])) {
   $desc = $_POST['description'];
   $pdf = $_FILES['pdf'];
 
-  if ($pdf['error'] == 0) {
-    $originalName = basename($pdf['name']);
-    $targetDir = "../upload/";
-    if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
-    $targetPath = $targetDir . $originalName;
-    $dbPath = "upload/" . $originalName;
+  // ==== Tambah limit upload 100MB ====
+  $maxSize = 100 * 1024 * 1024; // 100MB
 
-    if (file_exists($targetPath)) unlink($targetPath);
+  // Jika file melebihi 100MB
+  if ($pdf['size'] > $maxSize) {
+    echo "<script>alert('Ukuran file maksimal 100MB!'); history.back();</script>";
+    exit();
+  }
 
-    if (move_uploaded_file($pdf['tmp_name'], $targetPath)) {
-      $stmt = $conn->prepare("INSERT INTO books (title, description, file_path) VALUES (:title, :desc, :file)");
-      $stmt->bindParam(':title', $title);
-      $stmt->bindParam(':desc', $desc);
-      $stmt->bindParam(':file', $dbPath);
-      $stmt->execute();
-      echo "<script>alert('Buku berhasil diupload!'); window.location='daftar.php';</script>";
-    } else {
-      echo "<script>alert('Upload gagal!');</script>";
-    }
+  // Jika ada error upload dari PHP
+  if ($pdf['error'] !== 0) {
+    echo "<script>alert('Upload gagal! Error code: " . $pdf['error'] . " (kemungkinan ukuran melebihi batas server).');</script>";
+    exit();
+  }
+
+  // ==== Lanjutkan proses upload ====
+  $originalName = basename($pdf['name']);
+  $targetDir = "../upload/";
+  if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+  $targetPath = $targetDir . $originalName;
+  $dbPath = "upload/" . $originalName;
+
+  // Jika file dengan nama sama sudah ada → hapus
+  if (file_exists($targetPath)) unlink($targetPath);
+
+  if (move_uploaded_file($pdf['tmp_name'], $targetPath)) {
+    $stmt = $conn->prepare("INSERT INTO books (title, description, file_path) VALUES (:title, :desc, :file)");
+    $stmt->bindParam(':title', $title);
+    $stmt->bindParam(':desc', $desc);
+    $stmt->bindParam(':file', $dbPath);
+    $stmt->execute();
+    echo "<script>alert('Buku berhasil diupload!'); window.location='daftar.php';</script>";
+  } else {
+    echo "<script>alert('Upload gagal! File tidak bisa dipindahkan.');</script>";
   }
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -41,17 +58,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['pdf'])) {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Upload Buku | Tirta Bhagasasi</title>
+   <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <style>
+<style>
     :root {
-      --primary-color: #0066B3;      /* Biru utama */
-      --primary-light: #E6F2FF;      /* Biru muda */
-      --primary-dark: #004C80;       /* Biru gelap (hover) */
+      --primary-color: #0052A1;
+      --primary-light: #E6F2FF;
+      --primary-dark: #003f7a;
     }
 
-    .sidebar { transition: all 0.3s; }
-    .sidebar.hide { margin-left: -250px; }
+    .sidebar.collapsed {
+      width: 60px; 
+    }
+
+    .sidebar.collapsed span {
+      display: none;
+    }
+
+    .sidebar.collapsed nav a {
+      justify-content: center !important;
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+    }
+  
+    .sidebar.collapsed ion-icon {
+      margin-right: 0 !important;
+      font-size: 22px;
+    }
+
+    #content.collapsed {
+      padding-left: 80px;
+    }
 
     .bg-primary { background-color: var(--primary-color); }
     .bg-primary-dark { background-color: var(--primary-dark); }
@@ -71,13 +110,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['pdf'])) {
   </header>
 
   <!-- SIDEBAR -->
-  <aside id="sidebar" class="sidebar fixed top-14 left-0 w-60 h-full bg-white shadow-lg pt-6">
-    <nav class="flex flex-col space-y-2 px-4">
-      <a href="index.php" class="text-gray-700 hover:bg-primary-light rounded px-3 py-2">🏠 Dashboard</a>
-      <a href="upload.php" class="bg-primary-light text-primary font-semibold rounded px-3 py-2">📤 Upload Buku</a>
-      <a href="daftar.php" class="text-gray-700 hover:bg-primary-light rounded px-3 py-2">📚 Daftar Buku</a>
-    </nav>
-  </aside>
+<aside id="sidebar" class="sidebar fixed top-14 left-0 w-60 h-full bg-white shadow-lg pt-6">
+  <nav class="flex flex-col space-y-2 px-4">
+
+    <a href="index.php"
+       class="flex items-center space-x-2 rounded px-3 py-2
+       <?php echo ($page == 'index.php') ? 'bg-primary-light text-primary font-semibold' : 'text-gray-700 hover:bg-primary-light'; ?>">
+        <ion-icon name="home-outline" class="text-xl"></ion-icon>
+        <span>Dashboard</span>
+    </a>
+
+    <a href="upload.php"
+       class="flex items-center space-x-2 rounded px-3 py-2
+       <?php echo ($page == 'upload.php') ? 'bg-primary-light text-primary font-semibold' : 'text-gray-700 hover:bg-primary-light'; ?>">
+        <ion-icon name="cloud-upload-outline" class="text-xl"></ion-icon>
+        <span>Upload Buku</span>
+    </a>
+
+    <a href="daftar.php"
+       class="flex items-center space-x-2 rounded px-3 py-2
+       <?php echo ($page == 'daftar.php') ? 'bg-primary-light text-primary font-semibold' : 'text-gray-700 hover:bg-primary-light'; ?>">
+        <ion-icon name="library-outline" class="text-xl"></ion-icon>
+        <span>Daftar Buku</span>
+    </a>
+
+  </nav>
+</aside>
 
   <!-- CONTENT -->
   <main id="content" class="pt-20 pl-64 pr-6 pb-10 transition-all">
@@ -110,9 +168,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['pdf'])) {
     const btn = document.getElementById('menu-btn');
     const sidebar = document.getElementById('sidebar');
     const content = document.getElementById('content');
+
     btn.addEventListener('click', () => {
-      sidebar.classList.toggle('hide');
-      content.classList.toggle('pl-64');
+      sidebar.classList.toggle('collapsed');
+      content.classList.toggle('collapsed');
     });
   </script>
 </body>

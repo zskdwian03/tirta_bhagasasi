@@ -2,18 +2,23 @@
 include "db.php";
 
 $success = ""; 
+$lastId = null;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $name = $_POST['name'];
     $email = $_POST['email'];
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-    $role = "user"; // default role tanpa input dari form
+    $role = "user";
 
     $q = $pdo->prepare("INSERT INTO users(name, email, password, role) VALUES (?, ?, ?, ?)");
     $q->execute([$name, $email, $password, $role]);
 
-    $success = "Registrasi berhasil!!";
+    // Ambil ID user yang baru ditambahkan
+    $lastId = $pdo->lastInsertId();
+
+    $success = "Registrasi berhasil! ";
 }
+
 ?>
 <!DOCTYPE html>
 <html lang="id">
