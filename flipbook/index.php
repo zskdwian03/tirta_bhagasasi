@@ -33,27 +33,6 @@ if ($file && !file_exists($file)) {
 
     <link rel="stylesheet" href="style.css" />
     <style>
-        .back-btn {
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            background: #04376B;
-            color: #fff;
-            padding: 8px 14px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 14px;
-            z-index: 2000;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: 0.3s;
-        }
-
-        .back-btn:hover {
-            background: #065298;
-        }
-
         .book-container {
             position: relative;
             display: flex;
@@ -101,10 +80,12 @@ if ($file && !file_exists($file)) {
             background: #04376B;
         }
 
+        /* === CSS PERBAIKAN HIGHLIGHT === */
         .content {
             width: 100%;
             height: 100%;
             position: relative;
+            /* BARU: Pusatkan canvas & text layer */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -113,6 +94,7 @@ if ($file && !file_exists($file)) {
         .content>canvas,
         .textLayer {
             position: absolute;
+            /* HAPUS: object-fit: contain; (diganti di JS) */
         }
 
         .textLayer {
@@ -130,12 +112,16 @@ if ($file && !file_exists($file)) {
         }
 
         .textLayer>span mark.highlight-match {
+            /* Teks HTML di dalamnya tetap transparan (karena mewarisi dari span) */
+            /* Kita hanya menambahkan background "stabilo" */
             background-color: rgba(255, 200, 0, 0.45);
         }
 
+
+        /* CSS PANEL HASIL PENCARIAN */
         #search-results-panel {
             position: fixed;
-            top: 80px;
+            top: 90px;
             left: 20px;
             width: 300px;
             max-height: calc(100vh - 180px);
@@ -209,7 +195,6 @@ if ($file && !file_exists($file)) {
             padding: 0 1px;
         }
     </style>
-</head>
 
 <body>
 

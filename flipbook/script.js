@@ -235,22 +235,25 @@ async function renderPageTo(container, page) {
   // Dapatkan ukuran asli halaman PDF
   const viewport = page.getViewport({ scale: 1 });
 
-  // Hitung skala agar pas dengan rasio flipbook
+    // Hitung skala agar pas dengan rasio flipbook
   const scaleX = bookWidth / viewport.width;
   const scaleY = bookHeight / viewport.height;
-  const scale = Math.min(scaleX, scaleY); // agar tidak melampaui container
 
+  // scale dinaikkan agar teks tajam
+  const scale = Math.min(scaleX, scaleY) * 1.0;
+
+  // viewport baru
   const scaledViewport = page.getViewport({ scale });
 
-  // Buat elemen canvas
+  // HiDPI render
   const canvas = document.createElement("canvas");
   const context = canvas.getContext("2d");
-  const outputScale = (window.devicePixelRatio || 1);
+  const outputScale = Math.max(window.devicePixelRatio, 2);
 
-  // Ukuran akhir canvas sesuai skala dan resolusi layar
   canvas.width = scaledViewport.width * outputScale;
   canvas.height = scaledViewport.height * outputScale;
   context.setTransform(outputScale, 0, 0, outputScale, 0, 0);
+
 
   // Buat text layer
   const textLayerDiv = document.createElement("div");
@@ -396,3 +399,10 @@ function highlightSpansOnPage(container, keywords) {
     }
   });
 }
+// Tekan ENTER untuk mencari
+searchInput.addEventListener("keypress", function (e) {
+    if (e.key === "Enter") {
+        e.preventDefault(); 
+        searchBtn.click(); 
+    }
+});

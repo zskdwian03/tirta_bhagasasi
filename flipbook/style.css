@@ -1,3 +1,4 @@
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -21,8 +22,12 @@ body {
 .book {
   position: relative;
   width: 93vw;
-  max-width: 840px;
-  height: 590px;
+  max-width: 900px;
+
+  /* Rasio halaman A4 → tinggi = lebar x 1.414 */
+  height: calc((93vw / 2) * 1.414);
+  max-height: calc((900px / 2) * 1.414);
+
   perspective: 2300px;
   transform-style: preserve-3d;
 }
@@ -43,7 +48,7 @@ body {
   border: 1px solid #d0d0d0;
   overflow: hidden;
   backface-visibility: hidden;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  box-shadow: none;
 }
 
 .front { left: 50%; transform-origin: left center; }
@@ -87,3 +92,44 @@ button:active { transform: translateY(1px); }
   .buttons { flex-direction: column; }
 }
 
+.textLayer {
+  font-family: Arial, sans-serif !important;
+  text-rendering: geometricPrecision !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  mix-blend-mode: normal !important;
+}
+
+.textLayer span {
+  transform: none !important;
+  font-weight: 400 !important;
+  opacity: 1 !important;
+}
+
+.back-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    padding: 10px 16px;
+    background: #04376B;
+    color: white;
+    border-radius: 8px; /* kotak dengan sudut lembut */
+    font-size: 18px;
+    text-decoration: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 2000;
+    transition: 0.25s ease;
+}
+
+.back-btn:hover {
+    background: #06509E;
+    transform: translateY(-2px);
+}
+
+.back-btn:active {
+    transform: translateY(0px);
+}

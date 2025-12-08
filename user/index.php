@@ -1,35 +1,48 @@
-<?php
+<?php 
 session_start();
-if (!isset($_SESSION['user']) || $_SESSION['role'] != 'user') {
-  header("Location: ../login.php?msg=Silakan login terlebih dahulu");
-  exit();
-}
-?>
 
-<?php
+$namaUser = $_SESSION['name'] ?? 'User';
+
 include "../auth.php";
 require __DIR__ . '/../db.php';
 
-// 🔍 Fitur pencarian
+// =============================
+// 🔢 LIMIT DATA
+// =============================
+$limitOptions = [5, 10, 20, 50, 100];
+$limit = isset($_GET['limit']) && in_array($_GET['limit'], $limitOptions) 
+         ? (int)$_GET['limit'] 
+         : 10;
+
+// 🔍 PENCARIAN
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+
 if ($search !== '') {
-  $stmt = $pdo->prepare("SELECT * FROM books WHERE title LIKE ? OR description LIKE ? ORDER BY title ASC");
+  $stmt = $pdo->prepare("SELECT * FROM books 
+                         WHERE title LIKE ? OR description LIKE ? 
+                         ORDER BY title ASC 
+                         LIMIT $limit");
   $stmt->execute(["%$search%", "%$search%"]);
   $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } else {
-  $books = $pdo->query("SELECT * FROM books ORDER BY title ASC")->fetchAll(PDO::FETCH_ASSOC);
+  $stmt = $pdo->prepare("SELECT * FROM books ORDER BY title ASC LIMIT $limit");
+  $stmt->execute();
+  $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-
 ?>
-
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>User panel - Daftar Buku</title>
+  <title>User - Daftar Buku</title>
 
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+  <!-- ===========================
+        📌 CSS SUDAH DIRAPIKAN
+       =========================== -->
   <style>
     :root {
       --primary: #04376B;
@@ -42,7 +55,8 @@ if ($search !== '') {
       background: var(--bg);
       font-family: "Segoe UI", sans-serif;
       color: var(--text);
-      overflow: hidden;
+      overflow-x: hidden;
+      overflow-y: auto;
     }
 
     /* HEADER */
@@ -73,61 +87,72 @@ if ($search !== '') {
       margin-right: 30px;
     }
 
-    .logout-btn:hover {
-      background: #003b8a;
-    }
-
-    /* MAIN */
+    /* MAIN CONTENT */
     .main-content {
-      height: calc(100vh - 150px);
+      padding-top: 95px;
+      padding-bottom: 95px;
       display: flex;
       justify-content: center;
-      align-items: center;
-      padding-top: 65px;
-      padding-bottom: 65px;
+      align-items: flex-start;
+      min-height: calc(100vh - 190px);
     }
 
     .box {
       width: 100%;
-      max-width: 1000px;
+      max-width: 1100px;
       background: white;
       border-radius: 12px;
       padding: 20px;
-      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
-      margin-top: 35px; /* ⬅️ AGAR TIDAK MENEMPEL HEADER DAN TERLIHAT MENGGANTUNG */
-    }
-
-    /* SCROLL HANYA UNTUK DAFTAR BUKU */
-    .book-scroll {
-      max-height: 350px;
-      overflow-y: auto;
-      margin-top: 12px;
-      border-radius: 6px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.12);
     }
 
     /* TABEL */
-    .book-table {
-      width: 100%;
-      border-collapse: collapse;
+    .book-scroll {
+      max-height: 420px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      margin-top: 12px;
+      background: white;
     }
 
-    .book-table thead th {
+    table {
+      width: 100%;
+      border: 1px solid black;
+      border-collapse: collapse;
+      font-size: 14px;
+      table-layout: fixed;
+    }
+
+    table thead th {
       position: sticky;
       top: 0;
+      z-index: 10;
       background: var(--primary);
       color: white;
-      padding: 12px;
-      z-index: 5;
-    }
-
-    .book-table td {
       padding: 10px;
-      border-bottom: 1px solid #dcdcdc;
+      border: 1px solid black;
+      text-align: left;
     }
 
-    .book-table tr:hover {
-      background: #e6effa;
+    td {
+      padding: 10px 12px;
+      border: 1px solid black;
+      color: black;
+    }
+
+    tr:hover {
+      background: #e8f1ff;
       cursor: pointer;
+    }
+
+    /* KOLOM DESKRIPSI */
+    td.desc-col {
+      width: 160px;
+      max-width: 160px;
+      white-space: normal;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+      line-height: 1.4;
     }
 
     /* FOOTER */
@@ -147,66 +172,87 @@ if ($search !== '') {
 
 <body>
 
-  <div class="header">
+<div class="header">
     <span class="title">Tirta Bhagasasi Digital Library</span>
+
+    <!-- Nama user tampil -->
+    <span style="margin-right:20px;font-size:15px;background:white;color:black;padding:4px 12px;border-radius:6px;font-weight:600;">
+        Hi, <?= htmlspecialchars($namaUser) ?>! 
+    </span>
+
     <a href="../logout.php" class="logout-btn">Logout</a>
-  </div>
+</div>
 
-  <div class="main-content">
+<div class="main-content">
     <div class="box">
-      <h2 style="margin-top:3px; text-align:center;">📚 Daftar Buku</h2>
 
-<form method="get" style="margin-bottom:12px; text-align:center;">
+      <h2 style="margin:3px 0 18px 0;text-align:center;display:flex;justify-content:center;align-items:center;gap:8px;">
+        <ion-icon name="library-outline" style="font-size:30px;color:black;"></ion-icon>
+        <span style="color:black;font-size:23px;font-weight:600;">Daftar Buku</span>
+      </h2>
 
+      <form method="get" style="margin-bottom:12px;display:flex;justify-content:center;gap:10px;">
         <input type="text" name="search" placeholder="Cari buku"
           value="<?= htmlspecialchars($search) ?>"
-          style="padding:8px;border-radius:6px;border:1px solid #ccc;width:250px;">
-        <button type="submit"
-          style="padding:8px 12px;border:none;border-radius:6px;background:#04376B;color:white;">
+          style="padding:8px;border-radius:6px;border:1px solid #ccc;width:260px;">
+
+        <button type="submit" style="padding:8px 13px;border:none;border-radius:6px;background:#04376B;color:white;">
           Cari
         </button>
+
+        <div style="display:flex;align-items:center;gap:5px;">
+          <span style="font-size:14px;color:black;">Tampilkan:</span>
+
+          <select name="limit" onchange="this.form.submit()"
+            style="padding:8px;border-radius:6px;border:1px solid #ccc;">
+            <?php foreach ($limitOptions as $opt): ?>
+              <option value="<?= $opt ?>" <?= ($opt == $limit ? 'selected' : '') ?>>
+                <?= $opt ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
       </form>
 
-      <!-- Scroll hanya daftar buku -->
       <div class="book-scroll">
-        <table class="book-table">
+        <table>
           <thead>
             <tr>
-              <th>No</th>
-              <th>Judul Buku</th>
-              <th>Deskripsi</th>
+              <th style="width:20px;">No</th>
+              <th style="width:85px;">Judul Buku</th>
+              <th style="width:140px;">Deskripsi</th>
+              <th style="width:20px;">File</th>
             </tr>
           </thead>
+
           <tbody>
             <?php if (count($books) === 0): ?>
+              <tr><td colspan="4" style="text-align:center;padding:15px;">Tidak ada buku ditemukan.</td></tr>
+            <?php else: 
+              $no = 1; foreach ($books as $b): ?>
               <tr>
-                <td colspan="3" style="padding:15px;text-align:center;">Tidak ada buku ditemukan.</td>
+                <td><?= $no++ ?></td>
+                <td style="font-weight:600;white-space:normal;word-wrap:break-word;">
+                    <?= htmlspecialchars($b['title']) ?>
+                </td>
+                <td class="desc-col"><?= htmlspecialchars($b['description']) ?></td>
+                <td>
+                  <a href="../flipbook/index.php?file=<?= urlencode($b['file_path']) ?>"
+                    style="color:#0052A1;text-decoration:underline;">
+                    Lihat
+                  </a>
+                </td>
               </tr>
-            <?php else: ?>
-              <?php $no = 1; ?>
-              <?php foreach ($books as $book): ?>
-                <tr onclick="openFlipbook('<?= htmlspecialchars($book['file_path']) ?>')">
-                  <td><?= $no++ ?></td>
-                  <td><?= htmlspecialchars($book['title']) ?></td>
-                  <td><?= htmlspecialchars(mb_strimwidth($book['description'], 0, 90, '...')) ?></td>
-                </tr>
-              <?php endforeach; ?>
-            <?php endif; ?>
+            <?php endforeach; endif; ?>
           </tbody>
+
         </table>
       </div>
 
     </div>
-  </div>
+</div>
 
-  <footer>© <?= date('Y') ?> Flipbook - PDF</footer>
-
-  <script>
-    function openFlipbook(filePath) {
-      window.open("../flipbook/index.php?file=" + encodeURIComponent(filePath), "_blank");
-    }
-  </script>
+<footer>© <?= date('Y') ?> Tirta Bhagasasi - Digital Library</footer>
 
 </body>
-
 </html>

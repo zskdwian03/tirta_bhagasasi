@@ -18,15 +18,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $user = $q->fetch(PDO::FETCH_ASSOC);
 
     if ($user && password_verify($password, $user['password'])) {
-        $_SESSION['user'] = $user['id'];
-        $_SESSION['role'] = $user['role'];
 
-        if ($user['role'] === 'admin') {
-            header("Location: admin/index.php");
+        // =========================
+        // **CHECK STATUS USER**
+        // =========================
+        if ($user['role'] !== 'admin' && $user['status'] !== 'active') {
+            $error = "Akun Anda belum diaktifkan oleh admin!";
         } else {
-            header("Location: user/index.php");
+            $_SESSION['user'] = $user['id'];
+            $_SESSION['role'] = $user['role'];
+
+            if ($user['role'] === 'admin') {
+                header("Location: admin/index.php");
+            } else {
+                header("Location: user/index.php");
+            }
+            exit();
         }
-        exit();
+
     } else {
         $error = "Login gagal! Email atau password salah.";
     }
