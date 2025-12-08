@@ -80,12 +80,10 @@ if ($file && !file_exists($file)) {
             background: #04376B;
         }
 
-        /* === CSS PERBAIKAN HIGHLIGHT === */
         .content {
             width: 100%;
             height: 100%;
             position: relative;
-            /* BARU: Pusatkan canvas & text layer */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -94,7 +92,6 @@ if ($file && !file_exists($file)) {
         .content>canvas,
         .textLayer {
             position: absolute;
-            /* HAPUS: object-fit: contain; (diganti di JS) */
         }
 
         .textLayer {
@@ -112,13 +109,9 @@ if ($file && !file_exists($file)) {
         }
 
         .textLayer>span mark.highlight-match {
-            /* Teks HTML di dalamnya tetap transparan (karena mewarisi dari span) */
-            /* Kita hanya menambahkan background "stabilo" */
             background-color: rgba(255, 200, 0, 0.45);
         }
 
-
-        /* CSS PANEL HASIL PENCARIAN */
         #search-results-panel {
             position: fixed;
             top: 90px;
@@ -220,12 +213,9 @@ if ($file && !file_exists($file)) {
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
-
-    <!-- Variabel global dari PHP ke JS -->
     <script>
         const filePath = <?= $file ? json_encode($file) : 'null' ?>;
     </script>
-
     <script src="script.js"></script>
 </body>
 

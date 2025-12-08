@@ -2,32 +2,27 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  min-height: 100vh;
+  height: 100vh;          
+  overflow: hidden;      
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  font-family: Georgia, serif;
-  background: linear-gradient(135deg, #fff, #fff);
-  overflow: hidden;
+  background: #f8f8f8;
+  margin-top: 10px;
 }
 
 .book-container {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 18px;
+  gap: 15px;
 }
 
 .book {
   position: relative;
   width: 93vw;
-  max-width: 900px;
-
-  /* Rasio halaman A4 → tinggi = lebar x 1.414 */
-  height: calc((93vw / 2) * 1.414);
-  max-height: calc((900px / 2) * 1.414);
-
+  max-width: 840px;
+  height: 590px;
   perspective: 2300px;
   transform-style: preserve-3d;
 }
@@ -62,6 +57,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 12px;
+    margin-top: 20px;
+  margin-bottom: 20px;
 }
 
 button {
@@ -75,7 +72,6 @@ button {
 
 button:active { transform: translateY(1px); }
 
-/* 🌟 Tambahan styling upload */
 #pdf-upload {
   padding: 8px;
   border: 1px solid #ccc;
@@ -85,7 +81,6 @@ button:active { transform: translateY(1px); }
   font-size: 14px;
 }
 
-/* Responsif */
 @media (max-width: 600px) {
   .book { height: 380px; }
   .content { padding: 18px; font-size: 0.95rem; }
@@ -113,7 +108,7 @@ button:active { transform: translateY(1px); }
     padding: 10px 16px;
     background: #04376B;
     color: white;
-    border-radius: 8px; /* kotak dengan sudut lembut */
+    border-radius: 8px; 
     font-size: 18px;
     text-decoration: none;
     font-weight: 600;
