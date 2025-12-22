@@ -298,7 +298,7 @@
     <header>
         <div class="brand">
             <img src="logo.png" alt="Logo" class="logo">
-            <h2>E-Library Tirta Bhagasasi</h2>
+            <h2>Digital Library Tirta Bhagasasi</h2>
         </div>
 
         <div class="menu-toggle" onclick="toggleMenu()">☰</div>
@@ -314,7 +314,7 @@
     </header>
 
     <section class="hero">
-        <h1>Selamat Datang di E-Library</h1>
+        <h1>Selamat Datang di Digital Library</h1>
         <p>Akses dokumen dan arsip digital secara mudah dan efisien.</p>
         <a href="login.php" class="hero-btn">Mulai Akses</a>
     </section>
@@ -364,7 +364,7 @@
     </section>
 
 <footer>
-    © 2025 Perumda Tirta Bhagasasi • Sistem E-Library
+    © 2025 Perumda Tirta Bhagasasi • Digital Library
 </footer>
 
 <script>

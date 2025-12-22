@@ -29,12 +29,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES['pdf'])) {
     exit();
   }
 
-  $originalName = basename($pdf['name']);
-  $targetDir = "../upload/";
-  if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
-  $targetPath = $targetDir . $originalName;
-  $dbPath = "upload/" . $originalName;
-  if (file_exists($targetPath)) unlink($targetPath);
+date_default_timezone_set('Asia/Jakarta');
+$ext = strtolower(pathinfo($pdf['name'], PATHINFO_EXTENSION));
+
+if ($ext !== 'pdf') {
+  echo "<script>alert('Hanya file PDF yang diperbolehkan!'); history.back();</script>";
+  exit();
+}
+
+$folderName = 'dlib' . date('Ym'); 
+$targetDir = "../upload/" . $folderName . "/";
+
+if (!is_dir($targetDir)) {
+  mkdir($targetDir, 0777, true);
+}
+
+$newFileName = date('YmdHis') . '.' . $ext;
+$targetPath = $targetDir . $newFileName;
+
+$dbPath = "upload/" . $folderName . "/" . $newFileName;
 
   if (move_uploaded_file($pdf['tmp_name'], $targetPath)) {
     $stmt = $conn->prepare("INSERT INTO books (title, description, file_path) VALUES (:title, :desc, :file)");
@@ -109,7 +122,7 @@ input:focus, textarea:focus {
 <header class="fixed top-0 left-0 right-0 bg-primary text-white flex items-center justify-between px-4 py-3 shadow-md z-50">
   <div class="flex items-center gap-3">
     <button id="menu-btn" class="p-2 rounded hover:bg-primary-dark">☰</button>
-    <h1 class="text-lg font-bold">Tirta Bhagasasi Admin</h1>
+    <h1 class="text-lg font-bold">Digital Library - Tirta Bhagasasi</h1>
   </div>
 
   <div class="flex items-center gap-4">

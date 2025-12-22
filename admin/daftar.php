@@ -48,18 +48,21 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['edit_id'])) {
 }
 
 $search = isset($_GET['search']) ? trim($_GET['search']) : "";
-$limit  = isset($_GET['limit']) ? $_GET['limit'] : 10;
-$limitQuery = ($limit === "all") ? "" : "LIMIT " . intval($limit);
+$limit = $_GET['limit'] ?? null;
+$limitQuery = "";
+if ($limit && $limit !== "all") {
+  $limitQuery = "LIMIT " . intval($limit);
+}
 
 if ($search != "") {
   $stmt = $conn->prepare("SELECT * FROM books 
                           WHERE title LIKE :title OR description LIKE :desc
-                          ORDER BY id ASC $limitQuery"); 
+                          ORDER BY id DESC $limitQuery"); 
   $stmt->bindValue(":title", "%$search%", PDO::PARAM_STR);
   $stmt->bindValue(":desc", "%$search%", PDO::PARAM_STR);
   $stmt->execute();
 } else {
-  $stmt = $conn->prepare("SELECT * FROM books ORDER BY id ASC $limitQuery");
+  $stmt = $conn->prepare("SELECT * FROM books ORDER BY id DESC $limitQuery");
   $stmt->execute();
 }
 ?>
@@ -128,7 +131,7 @@ input:focus, textarea:focus { outline:none; border-color:var(--primary-color) !i
 <header class="fixed top-0 left-0 right-0 bg-primary text-white flex items-center justify-between px-4 py-3 shadow-md z-50">
   <div class="flex items-center gap-3">
     <button id="menu-btn" class="p-2 rounded hover:bg-primary-dark">☰</button>
-    <h1 class="text-lg font-bold">Tirta Bhagasasi Admin</h1>
+    <h1 class="text-lg font-bold">Digital Library - Tirta Bhagasasi</h1>
   </div>
 
   <div class="flex items-center gap-4">

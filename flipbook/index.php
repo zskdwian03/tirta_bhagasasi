@@ -209,6 +209,9 @@ if ($file && !file_exists($file)) {
             <button id="next-btn">Berikutnya →</button>
             <input type="text" id="search-input" placeholder="Cari kata...">
             <button id="search-btn">Cari</button>
+<button id="zoom-out">−</button>
+<button id="zoom-in">+</button>
+<button id="fullscreen-btn">⛶ Fullscreen</button>
         </div>
     </div>
 

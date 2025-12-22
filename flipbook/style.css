@@ -1,104 +1,201 @@
-
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
 body {
-  height: 100vh;          
-  overflow: hidden;      
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: #f8f8f8;
-  margin-top: 10px;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #f8f8f8;
+    margin-top: 10px;
 }
 
 .book-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
 }
 
 .book {
-  position: relative;
-  width: 93vw;
-  max-width: 840px;
-  height: 590px;
-  perspective: 2300px;
-  transform-style: preserve-3d;
+    position: relative;
+    width: 93vw;
+    max-width: 840px;
+    height: 590px;
+    perspective: 2300px;
+    transform-style: preserve-3d;
 }
 
 .paper {
-  position: absolute;
-  inset: 0;
-  transform-style: preserve-3d;
-  transition: transform var(--dur, 900ms) ease;
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transition: transform var(--dur, 900ms) ease;
 }
 
+/* --- Update CSS Anda --- */
+
+/* Pastikan side back bisa menerima scroll tanpa hambatan */
+/* Pastikan side hanya selebar 50% dan berada di posisinya masing-masing */
 .side {
-  position: absolute;
-  top: 0;
-  height: 100%;
-  width: 50%;
-  background: #fff;
-  border: 1px solid #d0d0d0;
-  overflow: hidden;
-  backface-visibility: hidden;
-  box-shadow: none;
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 50%;
+    background: #fff;
+    border: 1px solid #d0d0d0;
+    overflow: auto !important;
+    backface-visibility: hidden;
+    pointer-events: auto;
 }
 
-.front { left: 50%; transform-origin: left center; }
-.back { right: 50%; transform-origin: right center; transform: rotateY(180deg); }
+/* Sisi kanan (front) selalu di kanan, sisi kiri (back) selalu di kiri */
+.front {
+    left: 50%;
+}
 
-.paper.flipped { transform: rotateY(-180deg); }
-.side.back.hidden { visibility: hidden; }
+.back {
+    right: 50%;
+}
+
+/* Hilangkan visibilitas sisi yang sedang menghadap ke belakang agar tidak menumpuk */
+.paper .side.back {
+    visibility: hidden;
+}
+
+.paper.flipped .side.back {
+    visibility: visible;
+}
+
+.paper.flipped .side.front {
+    visibility: hidden;
+}
+
+/* KUNCI: Agar kertas yang di-flip tidak menutupi area kanan secara fisik */
+.paper {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+    transition: transform var(--dur, 900ms) ease;
+    /* Pastikan container paper tidak menghalangi klik ke arah paper di bawahnya */
+    pointer-events: none;
+}
+
+/* Hanya .side di dalam paper yang boleh menangkap scroll */
+.side {
+    pointer-events: auto;
+}
+
+.content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+/* Saat zoom aktif, biarkan konten meluber agar bisa di-scroll */
+.side.zoomed .content {
+    display: block;
+}
+
+.zoom-wrapper {
+    position: relative;
+    transform-origin: 0 0;
+    transition: transform 0.2s ease-out;
+    display: block;
+}
+
+.side::-webkit-scrollbar {
+    width: 3px;
+    height: 3px;
+}
+
+.side::-webkit-scrollbar-thumb {
+    background: #04376B;
+    border-radius: 10px;
+}
+
+.front {
+    left: 50%;
+    transform-origin: left center;
+}
+
+.back {
+    right: 50%;
+    transform-origin: right center;
+    transform: rotateY(180deg);
+}
+
+.paper.flipped {
+    transform: rotateY(-180deg);
+}
+
+.side.back.hidden {
+    visibility: hidden;
+}
 
 .buttons {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
     margin-top: 20px;
-  margin-bottom: 20px;
+    margin-bottom: 20px;
 }
 
 button {
-  padding: 10px 16px;
-  border-radius: 6px;
-  border: none;
-  background: #04376B;
-  color: #fff;
-  cursor: pointer;
+    padding: 10px 16px;
+    border-radius: 6px;
+    border: none;
+    background: #04376B;
+    color: #fff;
+    cursor: pointer;
 }
 
-button:active { transform: translateY(1px); }
+button:active {
+    transform: translateY(1px);
+}
 
 #pdf-upload {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  background: #f7f7f7;
-  cursor: pointer;
-  font-size: 14px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #f7f7f7;
+    cursor: pointer;
+    font-size: 14px;
 }
 
 @media (max-width: 600px) {
-  .book { height: 380px; }
-  .content { padding: 18px; font-size: 0.95rem; }
-  .buttons { flex-direction: column; }
+    .book {
+        height: 380px;
+    }
+    .content {
+        padding: 18px;
+        font-size: 0.95rem;
+    }
+    .buttons {
+        flex-direction: column;
+    }
 }
 
 .textLayer {
-  font-family: Arial, sans-serif !important;
-  text-rendering: geometricPrecision !important;
-  -webkit-font-smoothing: antialiased !important;
-  -moz-osx-font-smoothing: grayscale !important;
-  mix-blend-mode: normal !important;
+    font-family: Arial, sans-serif !important;
+    text-rendering: geometricPrecision !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+    mix-blend-mode: normal !important;
 }
 
 .textLayer span {
-  transform: none !important;
-  font-weight: 400 !important;
-  opacity: 1 !important;
+    transform: none !important;
+    font-weight: 400 !important;
+    opacity: 1 !important;
 }
 
 .back-btn {
@@ -108,7 +205,7 @@ button:active { transform: translateY(1px); }
     padding: 10px 16px;
     background: #04376B;
     color: white;
-    border-radius: 8px; 
+    border-radius: 8px;
     font-size: 18px;
     text-decoration: none;
     font-weight: 600;

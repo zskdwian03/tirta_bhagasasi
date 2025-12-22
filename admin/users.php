@@ -215,7 +215,7 @@ $pendingCount = $notif['total'];
 <header class="fixed top-0 left-0 right-0 bg-[#04376B] text-white flex items-center justify-between px-4 py-3 shadow-md z-50">
   <div class="flex items-center gap-3">
     <button id="menu-btn" class="p-2 rounded hover:bg-[#032A52]">☰</button>
-    <h1 class="text-lg font-bold">Tirta Bhagasasi Admin</h1>
+    <h1 class="text-lg font-bold">Digital Library - Tirta Bhagasasi</h1>
   </div>
 
   <div class="flex items-center gap-5">
