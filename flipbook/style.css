@@ -1,9 +1,11 @@
+/* ================= RESET ================= */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
+/* ================= BODY ================= */
 body {
     height: 100vh;
     overflow: hidden;
@@ -14,6 +16,7 @@ body {
     margin-top: 10px;
 }
 
+/* ================= CONTAINER ================= */
 .book-container {
     display: flex;
     flex-direction: column;
@@ -21,6 +24,7 @@ body {
     gap: 15px;
 }
 
+/* ================= BOOK ================= */
 .book {
     position: relative;
     width: 93vw;
@@ -28,19 +32,24 @@ body {
     height: 590px;
     perspective: 2300px;
     transform-style: preserve-3d;
+
+    /* KUNCI agar isi selalu center */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
+/* ================= PAPER ================= */
 .paper {
     position: absolute;
-    inset: 0;
+    width: 100%;
+    height: 100%;
     transform-style: preserve-3d;
     transition: transform var(--dur, 900ms) ease;
+    pointer-events: none;
 }
 
-/* --- Update CSS Anda --- */
-
-/* Pastikan side back bisa menerima scroll tanpa hambatan */
-/* Pastikan side hanya selebar 50% dan berada di posisinya masing-masing */
+/* ================= SIDE ================= */
 .side {
     position: absolute;
     top: 0;
@@ -53,16 +62,19 @@ body {
     pointer-events: auto;
 }
 
-/* Sisi kanan (front) selalu di kanan, sisi kiri (back) selalu di kiri */
+/* Posisi halaman */
 .front {
     left: 50%;
+    transform-origin: left center;
 }
 
 .back {
     right: 50%;
+    transform-origin: right center;
+    transform: rotateY(180deg);
 }
 
-/* Hilangkan visibilitas sisi yang sedang menghadap ke belakang agar tidak menumpuk */
+/* ================= VISIBILITY LOGIC ================= */
 .paper .side.back {
     visibility: hidden;
 }
@@ -75,21 +87,11 @@ body {
     visibility: hidden;
 }
 
-/* KUNCI: Agar kertas yang di-flip tidak menutupi area kanan secara fisik */
-.paper {
-    position: absolute;
-    inset: 0;
-    transform-style: preserve-3d;
-    transition: transform var(--dur, 900ms) ease;
-    /* Pastikan container paper tidak menghalangi klik ke arah paper di bawahnya */
-    pointer-events: none;
+.paper.flipped {
+    transform: rotateY(-180deg);
 }
 
-/* Hanya .side di dalam paper yang boleh menangkap scroll */
-.side {
-    pointer-events: auto;
-}
-
+/* ================= CONTENT ================= */
 .content {
     position: relative;
     width: 100%;
@@ -99,11 +101,12 @@ body {
     align-items: flex-start;
 }
 
-/* Saat zoom aktif, biarkan konten meluber agar bisa di-scroll */
+/* Saat zoom */
 .side.zoomed .content {
     display: block;
 }
 
+/* ================= ZOOM ================= */
 .zoom-wrapper {
     position: relative;
     transform-origin: 0 0;
@@ -111,6 +114,7 @@ body {
     display: block;
 }
 
+/* ================= SCROLLBAR ================= */
 .side::-webkit-scrollbar {
     width: 3px;
     height: 3px;
@@ -121,32 +125,13 @@ body {
     border-radius: 10px;
 }
 
-.front {
-    left: 50%;
-    transform-origin: left center;
-}
-
-.back {
-    right: 50%;
-    transform-origin: right center;
-    transform: rotateY(180deg);
-}
-
-.paper.flipped {
-    transform: rotateY(-180deg);
-}
-
-.side.back.hidden {
-    visibility: hidden;
-}
-
+/* ================= BUTTON ================= */
 .buttons {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 12px;
-    margin-top: 20px;
-    margin-bottom: 20px;
+    margin: 20px 0;
 }
 
 button {
@@ -162,6 +147,7 @@ button:active {
     transform: translateY(1px);
 }
 
+/* ================= FILE INPUT ================= */
 #pdf-upload {
     padding: 8px;
     border: 1px solid #ccc;
@@ -171,19 +157,7 @@ button:active {
     font-size: 14px;
 }
 
-@media (max-width: 600px) {
-    .book {
-        height: 380px;
-    }
-    .content {
-        padding: 18px;
-        font-size: 0.95rem;
-    }
-    .buttons {
-        flex-direction: column;
-    }
-}
-
+/* ================= TEXT LAYER ================= */
 .textLayer {
     font-family: Arial, sans-serif !important;
     text-rendering: geometricPrecision !important;
@@ -198,6 +172,7 @@ button:active {
     opacity: 1 !important;
 }
 
+/* ================= BACK BUTTON ================= */
 .back-btn {
     position: fixed;
     top: 20px;
@@ -209,9 +184,6 @@ button:active {
     font-size: 18px;
     text-decoration: none;
     font-weight: 600;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     z-index: 2000;
     transition: 0.25s ease;
@@ -223,5 +195,41 @@ button:active {
 }
 
 .back-btn:active {
-    transform: translateY(0px);
+    transform: translateY(0);
+}
+
+/* ================= FULLSCREEN FIX ================= */
+:fullscreen body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+:fullscreen .book-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+:fullscreen .book {
+    width: 90vw;       /* tidak terlalu lebar */
+    max-width: 1100px; /* batas aman */
+    height: 85vh;
+    margin: 0 auto;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 600px) {
+    .book {
+        height: 380px;
+    }
+
+    .content {
+        padding: 18px;
+        font-size: 0.95rem;
+    }
+
+    .buttons {
+        flex-direction: column;
+    }
 }

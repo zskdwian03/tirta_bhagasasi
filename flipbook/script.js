@@ -13,9 +13,14 @@ const resultsCount = document.getElementById('search-results-count');
 const zoomInBtn = document.getElementById('zoom-in');
 const zoomOutBtn = document.getElementById('zoom-out');
 const fullscreenBtn = document.getElementById('fullscreen-btn');
+let isFullscreen = false;
+
+// tambahan pembesar khusus fullscreen (jangan terlalu besar)
+const FULLSCREEN_BOOST = 1.1; // 1.15 – 1.25 aman
+
 
 // untuk besar nya tampilan pada saat halaman dimuat pertama
-let zoomScale = 1;
+let zoomScale = 1.1;
 
 const ZOOM_CONFIG = {
     STEP: 0.2,
@@ -41,28 +46,33 @@ fullscreenBtn.addEventListener('click', toggleFullscreen);
 
 function applyZoom() {
     const wrappers = document.querySelectorAll('.zoom-wrapper');
+
+    // jika fullscreen, tambahkan boost
+    const effectiveScale = isFullscreen
+        ? zoomScale * FULLSCREEN_BOOST
+        : zoomScale;
+
     wrappers.forEach(wrapper => {
-        wrapper.style.transform = `scale(${zoomScale})`;
-        wrapper.style.transformOrigin = "0 0"; // Kiblat kiri atas
+        wrapper.style.transform = `scale(${effectiveScale})`;
+        wrapper.style.transformOrigin = "0 0";
+
         const parentContent = wrapper.parentElement;
         const sideParent = parentContent.parentElement;
         const canvas = wrapper.querySelector('canvas');
+
         if (canvas) {
-            const scaledWidth = canvas.offsetWidth * zoomScale;
-            const scaledHeight = canvas.offsetHeight * zoomScale;
+            const scaledWidth = canvas.offsetWidth * effectiveScale;
+            const scaledHeight = canvas.offsetHeight * effectiveScale;
+
             parentContent.style.width = `${scaledWidth}px`;
             parentContent.style.height = `${scaledHeight}px`;
-            if (zoomScale > 1.0) {
-                parentContent.style.display = "block";
-                sideParent.style.overflow = "auto";
-            } else {
-                parentContent.style.display = "flex";
-                parentContent.style.width = "100%";
-                sideParent.style.overflow = "hidden";
-            }
+
+            parentContent.style.display = "block";
+            sideParent.style.overflow = "auto";
         }
     });
 }
+
 
 function toggleFullscreen() {
     const elem = document.documentElement;
@@ -83,6 +93,8 @@ let papers = [];
 let N = 0;
 let pageTexts = {}; // Simpan teks per halaman
 let currentQuery = "";
+let pdfInstance = null; // ← TAMBAHKAN BARIS INI
+
 
 const DURATION = 900;
 document.documentElement.style.setProperty('--dur', DURATION + 'ms');
@@ -229,6 +241,7 @@ async function loadPDF(url) {
     try {
         const loadingTask = pdfjsLib.getDocument(url);
         const pdf = await loadingTask.promise;
+        pdfInstance = pdf;
         book.innerHTML = '';
         current = 0;
         papers = [];
@@ -272,6 +285,26 @@ async function loadPDF(url) {
         alert("Gagal membuka PDF. Pastikan file ada dan path benar.");
     }
 }
+async function rerenderVisiblePages() {
+    if (!pdfInstance) return;
+
+    // halaman yang sedang terlihat
+    const visibleIndexes = [];
+
+    if (current === 0) {
+        visibleIndexes.push(0);
+    } else {
+        visibleIndexes.push(current - 1);
+        if (current < papers.length) {
+            visibleIndexes.push(current);
+        }
+    }
+
+    for (const index of visibleIndexes) {
+        await renderPaper(index, pdfInstance);
+    }
+}
+
 
 // ===== Helper: Render Satu Lembar Kertas (Depan & Belakang) =====
 async function renderPaper(index, pdf) {
@@ -364,11 +397,16 @@ async function renderPageTo(container, page) {
     applyZoom();
 }
 
-document.addEventListener('fullscreenchange', () => {
-    setTimeout(() => {
-        applyZoom();
-    }, 300);
+document.addEventListener('fullscreenchange', async () => {
+    isFullscreen = !!document.fullscreenElement;
+
+    // tunggu ukuran buku berubah dulu
+    await new Promise(r => setTimeout(r, 350));
+
+    await rerenderVisiblePages(); // ← INI KUNCINYA
+    applyZoom();
 });
+
 
 async function extractText(page, pageNum) {
     const textContent = await page.getTextContent();
